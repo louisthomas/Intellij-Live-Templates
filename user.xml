@@ -1,0 +1,104 @@
+<templateSet group="user">
+  <template name="builderinner" value="@org.codehaus.jackson.annotate.JsonIgnoreType&#10;&#9;public static class Builder {&#10;&#10;&#9;&#9;private java.util.List&lt;java.util.function.Consumer&lt;$class$&gt;&gt; operations;&#10;&#10;&#9;&#9;public Builder() {&#10;&#9;&#9;&#9;this.operations = new java.util.ArrayList&lt;&gt;();&#10;&#9;&#9;}&#10;&#10;&#9;&#9;public Builder withStatutEmploi(java.lang.String statutEmploi) {&#10;&#9;&#9;&#9;this.operations.add($object$ -&gt; $object$.statutEmploi = statutEmploi);&#10;&#9;&#9;&#9;return this;&#10;&#9;&#9;}&#10;&#9;&#9;&#10;&#9;&#9;public $class$ build() {&#10;&#9;&#9;&#9;$class$ $object$ = new $class$();&#10;&#9;&#9;&#9;operations.forEach(operation -&gt; operation.accept($object$));&#10;&#9;&#9;&#9;return $object$;&#10;&#9;&#9;}&#10;&#9;}" description="Builder inner class" toReformat="true" toShortenFQNames="true">
+    <variable name="class" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="object" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+  <template name="logger" value="private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger($className$.class);" description="Add slf4j logger" toReformat="true" toShortenFQNames="true">
+    <variable name="className" expression="className()" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_DECLARATION" value="true" />
+    </context>
+  </template>
+  <template name="boot-ctrl" value="@org.springframework.web.bind.annotation.RestController&#10;class $entity$Controller {&#10;&#10;    private $entity$Repository repository;&#10;&#10;    public $entity$Controller($entity$Repository repository) {&#10;        this.repository = repository;&#10;    }&#10;&#10;    @org.springframework.web.bind.annotation.GetMapping(&quot;/$uriMapping$&quot;)&#10;    java.util.Collection&lt;$entity$&gt; list() {&#10;        return repository.findAll();&#10;    }&#10;}" description="Spring Boot rest controller" toReformat="false" toShortenFQNames="true">
+    <variable name="entity" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="uriMapping" expression="" defaultValue="" alwaysStopAt="true" />
+  </template>
+  <template name="boot-entity" value="@javax.persistence.Entity&#10;class $entity$ {&#10;&#10;&#9;@javax.persistence.Id&#10;&#9;@javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)&#10;&#9;private java.util.UUID id;&#10;    private java.lang.String name;&#10;&#10;    public $entity$() {}&#10;&#10;    public $entity$(String name) {&#10;        this.name = name;&#10;    }&#10;&#10;    public java.util.UUID getId() {&#10;        return id;&#10;    }&#10;&#10;    public void setId(java.util.UUID id) {&#10;        this.id = id;&#10;    }&#10;&#10;    public java.lang.String getName() {&#10;        return name;&#10;    }&#10;&#10;    public void setName(java.lang.String name) {&#10;        this.name = name;&#10;    }&#10;&#10;    @java.lang.Override&#10;    public java.lang.String toString() {&#10;        return &quot;$entity${&quot; +&#10;                &quot;id=&quot; + id.toString() +&#10;                &quot;, name='&quot; + name + '\'' +&#10;                '}';&#10;    }&#10;}" description="Spring Boot entity" toReformat="false" toShortenFQNames="true">
+    <variable name="entity" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="boot-repo" value="interface $entity$Repository extends JpaRepository&lt;$entity$, java.lang.Long&gt; {}" description="Spring Boot repository" toReformat="false" toShortenFQNames="true">
+    <variable name="entity" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="spring-reactive-security-conf" value="@EnableWebFluxSecurity&#10;@EnableReactiveMethodSecurity&#10;public class WebSecurityConfiguration {&#10;&#10;&#9;private final LibraryReactiveUserDetailsService libraryReactiveUserDetailsService;&#10;&#10;&#9;@Autowired&#10;&#9;public WebSecurityConfiguration(&#10;&#9;&#9;&#9;LibraryReactiveUserDetailsService libraryReactiveUserDetailsService) {&#10;&#9;&#9;this.libraryReactiveUserDetailsService = libraryReactiveUserDetailsService;&#10;&#9;}&#10;&#10;&#9;@Bean&#10;&#9;public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {&#10;&#9;&#9;http&#10;&#9;&#9;&#9;&#9;.sessionManagement()&#10;&#9;&#9;&#9;&#9;.sessionCreationPolicy(SessionCreationPolicy.STATELESS)&#10;&#9;&#9;&#9;&#9;.and()&#10;&#9;&#9;&#9;&#9;.csrf()&#10;&#9;&#9;&#9;&#9;.disable()&#10;&#9;&#9;&#9;&#9;.authorizeExchange()&#10;&#9;&#9;&#9;&#9;.matchers(PathRequest.toStaticResources().atCommonLocations())&#10;&#9;&#9;&#9;&#9;.permitAll()&#10;&#9;&#9;&#9;&#9;.matchers(EndpointRequest.to(&quot;health&quot;))&#10;&#9;&#9;&#9;&#9;.permitAll()&#10;&#9;&#9;&#9;&#9;.matchers(EndpointRequest.to(&quot;info&quot;))&#10;&#9;&#9;&#9;&#9;.permitAll()&#10;&#9;&#9;&#9;&#9;.matchers(EndpointRequest.toAnyEndpoint())&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_ADMIN.name())&#10;&#9;&#9;&#9;&#9;.pathMatchers(HttpMethod.POST, &quot;/books/{bookId}/borrow&quot;)&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_USER.name())&#10;&#9;&#9;&#9;&#9;.pathMatchers(HttpMethod.POST, &quot;/books/{bookId}/return&quot;)&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_USER.name())&#10;&#9;&#9;&#9;&#9;.pathMatchers(HttpMethod.POST, &quot;/books&quot;)&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_CURATOR.name())&#10;&#9;&#9;&#9;&#9;.pathMatchers(HttpMethod.DELETE, &quot;/books&quot;)&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_CURATOR.name())&#10;&#9;&#9;&#9;&#9;.pathMatchers(&quot;/users/**&quot;)&#10;&#9;&#9;&#9;&#9;.hasRole(Role.LIBRARY_ADMIN.name())&#10;&#9;&#9;&#9;&#9;.anyExchange()&#10;&#9;&#9;&#9;&#9;.authenticated()&#10;&#9;&#9;&#9;&#9;.and()&#10;&#9;&#9;&#9;&#9;.oauth2ResourceServer()&#10;&#9;&#9;&#9;&#9;.jwt()&#10;&#9;&#9;&#9;&#9;.jwtAuthenticationConverter(libraryUserJwtAuthenticationConverter());&#10;&#9;&#9;// .jwtAuthenticationConverter(libraryUserRolesJwtAuthenticationConverter());&#10;&#9;&#9;return http.build();&#10;&#9;}&#10;&#10;&#9;@Bean&#10;&#9;public LibraryUserJwtAuthenticationConverter libraryUserJwtAuthenticationConverter() {&#10;&#9;&#9;return new LibraryUserJwtAuthenticationConverter(libraryReactiveUserDetailsService);&#10;&#9;}&#10;&#10;&#9;@Bean&#10;&#9;public LibraryUserRolesJwtAuthenticationConverter libraryUserRolesJwtAuthenticationConverter() {&#10;&#9;&#9;return new LibraryUserRolesJwtAuthenticationConverter(libraryReactiveUserDetailsService);&#10;&#9;}&#10;}" description="Spring Websecurity reactive configuration" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_EXPRESSION" value="true" />
+      <option name="JAVA_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="spring-reactive-oauth2-client" value="@Bean&#10;WebClient webClient(ReactiveClientRegistrationRepository clientRegistrationRepository,&#10;&#9;&#9;ServerOAuth2AuthorizedClientRepository authorizedClientRepository){&#10;&#9;ServerOAuth2AuthorizedClientExchangeFilterFunction oauth = new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientRegistrationRepository, authorizedClientRepository);&#10;&#9;oauth.setDefaultOAuth2AuthorizedClient(true);&#10;&#9;oauth.setDefaultClientRegistrationId(&quot;keycloak&quot;);&#10;&#9;return WebClient.builder().filter(oauth).build();&#10;}" description="Spring security oauth2 client" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_EXPRESSION" value="true" />
+      <option name="JAVA_STATEMENT" value="true" />
+    </context>
+  </template>
+  <template name="spring-security-oauth2-client-properties" value="spring:&#10;  security:&#10;      oauth2:&#10;        client:&#10;          registration:&#10;            keycloak: &#10;              client-id: 'library-client'&#10;              client-secret: '9584640c-3804-4dcd-997b-93593cfb9ea7'&#10;              authorizationGrantType: authorization_code&#10;              redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'&#10;              scope: openid&#10;          provider:&#10;            keycloak:&#10;              issuerUri: http://localhost:8080/auth/realms/workshop # http://localhost:8080/auth/realms/workshop/.well-known/openid-configuration&#10;              user-name-attribute: name" description="Spring security oauth2 client configuration" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="ACTION_SCRIPT" value="false" />
+      <option name="ASPECTJ" value="false" />
+      <option name="CSS" value="false" />
+      <option name="CUCUMBER_FEATURE_FILE" value="false" />
+      <option name="CoffeeScript" value="false" />
+      <option name="ColdFusion" value="false" />
+      <option name="ECMAScript6" value="false" />
+      <option name="GROOVY" value="false" />
+      <option name="GSP" value="false" />
+      <option name="HAML" value="false" />
+      <option name="HTML" value="false" />
+      <option name="JAVA_CODE" value="false" />
+      <option name="JAVA_SCRIPT" value="false" />
+      <option name="JSON" value="false" />
+      <option name="JSP" value="false" />
+      <option name="KOTLIN" value="false" />
+      <option name="MAVEN" value="false" />
+      <option name="MXML" value="false" />
+      <option name="OGNL" value="false" />
+      <option name="OTHER" value="true" />
+      <option name="REQUEST" value="false" />
+      <option name="SHELL_SCRIPT" value="false" />
+      <option name="SKAFFOLD" value="false" />
+      <option name="SQL" value="false" />
+      <option name="TypeScript" value="false" />
+      <option name="XML" value="false" />
+    </context>
+  </template>
+  <template name="spring-resource-server-properties" value="spring:&#10;  security:&#10;    oauth2:&#10;      resourceserver:&#10;        jwt:&#10;          issuer-uri: https://idp.example.com/issuer&#10;          jwk-set-uri: https://idp.example.com/.well-known/jwks.json" description="Spring security Oauth2 resource server properties" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="ACTION_SCRIPT" value="false" />
+      <option name="ASPECTJ" value="false" />
+      <option name="CSS" value="false" />
+      <option name="CUCUMBER_FEATURE_FILE" value="false" />
+      <option name="CoffeeScript" value="false" />
+      <option name="ColdFusion" value="false" />
+      <option name="ECMAScript6" value="false" />
+      <option name="GROOVY" value="false" />
+      <option name="GSP" value="false" />
+      <option name="HAML" value="false" />
+      <option name="HTML" value="false" />
+      <option name="JAVA_CODE" value="false" />
+      <option name="JAVA_SCRIPT" value="false" />
+      <option name="JSON" value="false" />
+      <option name="JSP" value="false" />
+      <option name="KOTLIN" value="false" />
+      <option name="MAVEN" value="false" />
+      <option name="MXML" value="false" />
+      <option name="OGNL" value="false" />
+      <option name="OTHER" value="true" />
+      <option name="REQUEST" value="false" />
+      <option name="SHELL_SCRIPT" value="false" />
+      <option name="SKAFFOLD" value="false" />
+      <option name="SQL" value="false" />
+      <option name="TypeScript" value="false" />
+      <option name="XML" value="false" />
+    </context>
+  </template>
+  <template name="spring-reactive-ctrl-withSecurity" value="@Controller&#10;public class BookController { &#10;&#10;  private final WebClient webClient;&#10;&#10;  @Value(&quot;${library.server}&quot;)&#10;  private String libraryServer;&#10;&#10;  public BookController(WebClient webClient) {&#10;    this.webClient = webClient;&#10;  }&#10;&#10;  @ModelAttribute(&quot;books&quot;)&#10;  Flux&lt;BookResource&gt; books() { &#10;    return webClient&#10;        .get()&#10;        .uri(libraryServer + &quot;/books&quot;)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToFlux(BookResource.class);&#10;  }&#10;&#10;  @GetMapping(&quot;/&quot;)&#10;  Mono&lt;String&gt; index(@AuthenticationPrincipal OAuth2User user, Model model) { &#10;&#10;    model.addAttribute(&quot;fullname&quot;, user.getName());&#10;    model.addAttribute(&#10;        &quot;isCurator&quot;,&#10;        user.getAuthorities().stream().anyMatch(ga -&gt; ga.getAuthority().equals(&quot;library_curator&quot;)));&#10;    return Mono.just(&quot;index&quot;);&#10;  }&#10;&#10;  @GetMapping(&quot;/createbook&quot;)&#10;  String createForm(Model model) { &#10;&#10;    model.addAttribute(&quot;book&quot;, new CreateBookResource());&#10;&#10;    return &quot;createbookform&quot;;&#10;  }&#10;&#10;  @PostMapping(&quot;/create&quot;)&#10;  Mono&lt;String&gt; create( &#10;      CreateBookResource createBookResource, ServerWebExchange serverWebExchange, Model model)&#10;      throws IOException {&#10;&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books&quot;)&#10;        .body(Mono.just(createBookResource), CreateBookResource.class)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;&#10;  @GetMapping(&quot;/borrow&quot;) &#10;  Mono&lt;String&gt; borrowBook(@RequestParam(&quot;identifier&quot;) String identifier) {&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books/{bookId}/borrow&quot;, identifier)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;&#10;  @GetMapping(&quot;/return&quot;)&#10;  Mono&lt;String&gt; returnBook( &#10;      @RequestParam(&quot;identifier&quot;) String identifier, ServerWebExchange serverWebExchange) {&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books/{bookId}/return&quot;, identifier)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;}" description="Example Spring reactive controller with secure Webclient" toReformat="false" toShortenFQNames="true" />
+</templateSet>
