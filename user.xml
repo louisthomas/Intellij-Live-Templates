@@ -101,4 +101,92 @@
     </context>
   </template>
   <template name="spring-reactive-ctrl-withSecurity" value="@Controller&#10;public class BookController { &#10;&#10;  private final WebClient webClient;&#10;&#10;  @Value(&quot;${library.server}&quot;)&#10;  private String libraryServer;&#10;&#10;  public BookController(WebClient webClient) {&#10;    this.webClient = webClient;&#10;  }&#10;&#10;  @ModelAttribute(&quot;books&quot;)&#10;  Flux&lt;BookResource&gt; books() { &#10;    return webClient&#10;        .get()&#10;        .uri(libraryServer + &quot;/books&quot;)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToFlux(BookResource.class);&#10;  }&#10;&#10;  @GetMapping(&quot;/&quot;)&#10;  Mono&lt;String&gt; index(@AuthenticationPrincipal OAuth2User user, Model model) { &#10;&#10;    model.addAttribute(&quot;fullname&quot;, user.getName());&#10;    model.addAttribute(&#10;        &quot;isCurator&quot;,&#10;        user.getAuthorities().stream().anyMatch(ga -&gt; ga.getAuthority().equals(&quot;library_curator&quot;)));&#10;    return Mono.just(&quot;index&quot;);&#10;  }&#10;&#10;  @GetMapping(&quot;/createbook&quot;)&#10;  String createForm(Model model) { &#10;&#10;    model.addAttribute(&quot;book&quot;, new CreateBookResource());&#10;&#10;    return &quot;createbookform&quot;;&#10;  }&#10;&#10;  @PostMapping(&quot;/create&quot;)&#10;  Mono&lt;String&gt; create( &#10;      CreateBookResource createBookResource, ServerWebExchange serverWebExchange, Model model)&#10;      throws IOException {&#10;&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books&quot;)&#10;        .body(Mono.just(createBookResource), CreateBookResource.class)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;&#10;  @GetMapping(&quot;/borrow&quot;) &#10;  Mono&lt;String&gt; borrowBook(@RequestParam(&quot;identifier&quot;) String identifier) {&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books/{bookId}/borrow&quot;, identifier)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;&#10;  @GetMapping(&quot;/return&quot;)&#10;  Mono&lt;String&gt; returnBook( &#10;      @RequestParam(&quot;identifier&quot;) String identifier, ServerWebExchange serverWebExchange) {&#10;    return webClient&#10;        .post()&#10;        .uri(libraryServer + &quot;/books/{bookId}/return&quot;, identifier)&#10;        .retrieve()&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.UNAUTHORIZED),&#10;            cr -&gt; Mono.just(new BadCredentialsException(&quot;Not authenticated&quot;)))&#10;        .onStatus(&#10;            s -&gt; s.equals(HttpStatus.FORBIDDEN),&#10;            cr -&gt; Mono.just(new AccessDeniedException(&quot;Not authorized&quot;)))&#10;        .onStatus(&#10;            HttpStatus::is4xxClientError,&#10;            cr -&gt; Mono.just(new IllegalArgumentException(cr.statusCode().getReasonPhrase())))&#10;        .onStatus(&#10;            HttpStatus::is5xxServerError,&#10;            cr -&gt; Mono.just(new Exception(cr.statusCode().getReasonPhrase())))&#10;        .bodyToMono(BookResource.class)&#10;        .then(Mono.just(&quot;redirect:/&quot;));&#10;  }&#10;}" description="Example Spring reactive controller with secure Webclient" toReformat="false" toShortenFQNames="true" />
+  <template name="spring-postgresql-properties" value="spring:&#10;  datasource:&#10;    url: jdbc:postgresql://localhost:5432/postgres&#10;    username: postgres&#10;  #  h2:&#10;  #    console:&#10;  #      enabled: true&#10;  #      path: /h2-console&#10;  jpa:&#10;    show-sql: true&#10;    properties:&#10;      hibernate:&#10;        format_sql: true&#10;        default_schema: octroi&#10;    hibernate:&#10;      ddl-auto: validate&#10;  flyway:&#10;    #    locations: classpath:db/all,classpath:db/h2,classpath:db/migration,classpath:chiffrement.db.migration,classpath:db/local&#10;    schemas: octroi&#10;    locations: classpath:db/all,classpath:db/postgresql,classpath:db/local,classpath:db/migration,classpath:chiffrement.db.migration" description="Spring Boot Postgresql Docker config" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="ACTION_SCRIPT" value="false" />
+      <option name="ASPECTJ" value="false" />
+      <option name="Bash" value="false" />
+      <option name="CSS" value="false" />
+      <option name="CUCUMBER_FEATURE_FILE" value="false" />
+      <option name="CoffeeScript" value="false" />
+      <option name="ColdFusion" value="false" />
+      <option name="ECMAScript6" value="false" />
+      <option name="GROOVY" value="false" />
+      <option name="GSP" value="false" />
+      <option name="HAML" value="false" />
+      <option name="HTML" value="false" />
+      <option name="JAVA_CODE" value="false" />
+      <option name="JAVA_SCRIPT" value="false" />
+      <option name="JSON" value="false" />
+      <option name="JSP" value="false" />
+      <option name="KOTLIN" value="false" />
+      <option name="MAVEN" value="false" />
+      <option name="MXML" value="false" />
+      <option name="OGNL" value="false" />
+      <option name="OTHER" value="true" />
+      <option name="REQUEST" value="false" />
+      <option name="SHELL_SCRIPT" value="false" />
+      <option name="SQL" value="false" />
+      <option name="TypeScript" value="false" />
+      <option name="XML" value="false" />
+    </context>
+  </template>
+  <template name="postgresql-dockercompose" value="version: '2'&#10;&#10;services:&#10;  postgresql:&#10;    image: bitnami/postgresql:10&#10;    ports:&#10;      - 5432:5432&#10;    environment:&#10;      - 'POSTGRES_DB=postgres'&#10;      - 'ALLOW_EMPTY_PASSWORD=yes'&#10;      - 'POSTGRES_USER=postgres'&#10;  pgadmin:&#10;    image: dpage/pgadmin4&#10;    environment:&#10;      - 'PGADMIN_DEFAULT_EMAIL=admin@admin.org'&#10;      - 'PGADMIN_DEFAULT_PASSWORD=admin'&#10;    volumes:&#10;      - pgadmin:/root/.pgadmin&#10;    ports:&#10;      - 5050:80&#10;&#10;volumes:&#10;  pgadmin:" description="Pöstgresql et PGadmin docker-compose file" toReformat="true" toShortenFQNames="true">
+    <context>
+      <option name="ACTION_SCRIPT" value="false" />
+      <option name="ASPECTJ" value="false" />
+      <option name="Bash" value="false" />
+      <option name="CSS" value="false" />
+      <option name="CUCUMBER_FEATURE_FILE" value="false" />
+      <option name="CoffeeScript" value="false" />
+      <option name="ColdFusion" value="false" />
+      <option name="ECMAScript6" value="false" />
+      <option name="GROOVY" value="false" />
+      <option name="GSP" value="false" />
+      <option name="HAML" value="false" />
+      <option name="HTML" value="false" />
+      <option name="JAVA_CODE" value="false" />
+      <option name="JAVA_SCRIPT" value="false" />
+      <option name="JSON" value="false" />
+      <option name="JSP" value="false" />
+      <option name="KOTLIN" value="false" />
+      <option name="MAVEN" value="false" />
+      <option name="MXML" value="false" />
+      <option name="OGNL" value="false" />
+      <option name="OTHER" value="true" />
+      <option name="REQUEST" value="false" />
+      <option name="SHELL_SCRIPT" value="false" />
+      <option name="SQL" value="false" />
+      <option name="TypeScript" value="false" />
+      <option name="XML" value="false" />
+    </context>
+  </template>
+  <template name="boot-webmvctest" value="import org.junit.jupiter.api.*;&#10;import org.springframework.beans.factory.annotation.*;&#10;import org.springframework.boot.test.autoconfigure.web.servlet.*;&#10;import org.springframework.boot.test.mock.mockito.*;&#10;&#10;import static org.assertj.core.api.Assertions.*;&#10;import static org.mockito.BDDMockito.*;&#10;import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;&#10;import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;&#10;&#10;@WebMvcTest(UserVehicleController.class)&#10;class MyControllerTests {&#10;&#10;    @Autowired&#10;    private MockMvc mvc;&#10;&#10;    @MockBean&#10;    private UserVehicleService userVehicleService;&#10;&#10;    @Test&#10;    void testExample() throws Exception {&#10;        given(this.userVehicleService.getVehicleDetails(&quot;sboot&quot;))&#10;                .willReturn(new VehicleDetails(&quot;Honda&quot;, &quot;Civic&quot;));&#10;        this.mvc.perform(get(&quot;/sboot/vehicle&quot;).accept(MediaType.TEXT_PLAIN))&#10;                .andExpect(status().isOk()).andExpect(content().string(&quot;Honda Civic&quot;));&#10;    }&#10;}" description="Spring Boot MVC test controller" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+      <option name="JAVA_COMMENT" value="false" />
+      <option name="JAVA_STRING" value="false" />
+    </context>
+  </template>
+  <template name="boot-webfluxtest" value="@WebFluxTest(UserVehicleController.class)&#10;class MyControllerTests {&#10;&#10;    @Autowired&#10;    private WebTestClient webClient;&#10;&#10;    @MockBean&#10;    private UserVehicleService userVehicleService;&#10;&#10;    @Test&#10;    void testExample() throws Exception {&#10;        given(this.userVehicleService.getVehicleDetails(&quot;sboot&quot;))&#10;                .willReturn(new VehicleDetails(&quot;Honda&quot;, &quot;Civic&quot;));&#10;        this.webClient.get().uri(&quot;/sboot/vehicle&quot;).accept(MediaType.TEXT_PLAIN)&#10;                .exchange()&#10;                .expectStatus().isOk()&#10;                .expectBody(String.class).isEqualTo(&quot;Honda Civic&quot;);&#10;    }&#10;&#10;}" description="Spring Boot Webflux controller test" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+      <option name="JAVA_COMMENT" value="false" />
+    </context>
+  </template>
+  <template name="boot-datajpa-test" value="import org.junit.jupiter.api.Test;&#10;import org.springframework.boot.test.autoconfigure.orm.jpa.*;&#10;&#10;import static org.assertj.core.api.Assertions.*;&#10;&#10;@DataJpaTest&#10;class ExampleRepositoryTests {&#10;&#10;    @Autowired&#10;    private TestEntityManager entityManager;&#10;&#10;    @Autowired&#10;    private UserRepository repository;&#10;&#10;    @Test&#10;    void testExample() throws Exception {&#10;        this.entityManager.persist(new User(&quot;sboot&quot;, &quot;1234&quot;));&#10;        User user = this.repository.findByUsername(&quot;sboot&quot;);&#10;        assertThat(user.getUsername()).isEqualTo(&quot;sboot&quot;);&#10;        assertThat(user.getVin()).isEqualTo(&quot;1234&quot;);&#10;    }&#10;&#10;}" description="Spring Boot data jpa repository test" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="boot-restclient-test" value="@RestClientTest(RemoteVehicleDetailsService.class)&#10;class ExampleRestClientTest {&#10;&#10;    @Autowired&#10;    private RemoteVehicleDetailsService service;&#10;&#10;    @Autowired&#10;    private MockRestServiceServer server;&#10;&#10;    @Test&#10;    void getVehicleDetailsWhenResultIsSuccessShouldReturnDetails()&#10;            throws Exception {&#10;        this.server.expect(requestTo(&quot;/greet/details&quot;))&#10;                .andRespond(withSuccess(&quot;hello&quot;, MediaType.TEXT_PLAIN));&#10;        String greeting = this.service.callRestService();&#10;        assertThat(greeting).isEqualTo(&quot;hello&quot;);&#10;    }&#10;&#10;}" description="Spring Boot rest client test" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="boot-json-test" value="import org.junit.jupiter.api.Test;&#10;import org.springframework.beans.factory.annotation.*;&#10;import org.springframework.boot.test.autoconfigure.json.*;&#10;import org.springframework.boot.test.context.*;&#10;import org.springframework.boot.test.json.*;&#10;&#10;import static org.assertj.core.api.Assertions.*;&#10;&#10;@JsonTest&#10;class MyJsonTests {&#10;&#10;    @Autowired&#10;    private JacksonTester&lt;VehicleDetails&gt; json;&#10;&#10;    @Test&#10;    void testSerialize() throws Exception {&#10;        VehicleDetails details = new VehicleDetails(&quot;Honda&quot;, &quot;Civic&quot;);&#10;        // Assert against a `.json` file in the same package as the test&#10;        assertThat(this.json.write(details)).isEqualToJson(&quot;expected.json&quot;);&#10;        // Or use JSON path based assertions&#10;        assertThat(this.json.write(details)).hasJsonPathStringValue(&quot;@.make&quot;);&#10;        assertThat(this.json.write(details)).extractingJsonPathStringValue(&quot;@.make&quot;)&#10;                .isEqualTo(&quot;Honda&quot;);&#10;    }&#10;&#10;    @Test&#10;    void testDeserialize() throws Exception {&#10;        String content = &quot;{\&quot;make\&quot;:\&quot;Ford\&quot;,\&quot;model\&quot;:\&quot;Focus\&quot;}&quot;;&#10;        assertThat(this.json.parse(content))&#10;                .isEqualTo(new VehicleDetails(&quot;Ford&quot;, &quot;Focus&quot;));&#10;        assertThat(this.json.parseObject(content).getMake()).isEqualTo(&quot;Ford&quot;);&#10;    }&#10;&#10;}" description="Spring Boot json serialize/deserialize test" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
 </templateSet>
